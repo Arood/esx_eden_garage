@@ -21,3 +21,7 @@ Nous travaillons dessus.
 Fonctionnement :
 Entrez dans le cercle vert a pied pour sortir un vehicule, entre dans le cercle rouge avec votre vehicule pour le rentrer si le vehicule est endomagé un menu vous annonce le montant de la facture vous pouvez la payer pour rentrer le vehicule ou aller voir un mécano
 
+## New stuff
+
+* Support for locales
+* Support for private garages, based om owned properties
