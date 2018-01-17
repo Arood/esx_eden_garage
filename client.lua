@@ -19,7 +19,7 @@ local LastZone                  = nil
 local CurrentActionMsg          = ''
 local CurrentActionData         = {}
 local times 			= 0
-
+local userProperties = {}
 local this_Garage = {}
 
 -- Fin Local
@@ -39,7 +39,13 @@ end)
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
     --PlayerData = xPlayer
-    --TriggerServerEvent('esx_jobs:giveBackCautionInCaseOfDrop')
+		--TriggerServerEvent('esx_jobs:giveBackCautionInCaseOfDrop')
+		if Config.PropertyGarages then
+			ESX.TriggerServerCallback('eden_garage:getOwnedProperties', function(properties)
+				userProperties = properties
+				PrivateGarageBlips()
+			end)
+		end
     refreshBlips()
 end)
 
@@ -49,28 +55,63 @@ function refreshBlips()
 
 	for zoneKey,zoneValues in pairs(Config.Garages)do
 
-		local blip = AddBlipForCoord(zoneValues.Pos.x, zoneValues.Pos.y, zoneValues.Pos.z)
-		SetBlipSprite (blip, Config.BlipInfos.Sprite)
-		SetBlipDisplay(blip, 4)
-		SetBlipScale  (blip, 1.2)
-		SetBlipColour (blip, Config.BlipInfos.Color)
-		SetBlipAsShortRange(blip, true)
-		BeginTextCommandSetBlipName("STRING")
-		AddTextComponentString(zoneKey)
-		EndTextCommandSetBlipName(blip)
+		if not zoneValues.Private then
+			local blip = AddBlipForCoord(zoneValues.Pos.x, zoneValues.Pos.y, zoneValues.Pos.z)
+			SetBlipSprite (blip, Config.BlipInfos.Sprite)
+			SetBlipDisplay(blip, 4)
+			SetBlipScale  (blip, 1.2)
+			SetBlipColour (blip, Config.BlipInfos.Color)
+			SetBlipAsShortRange(blip, true)
+			BeginTextCommandSetBlipName("STRING")
+			AddTextComponentString(_U('public_garage'))
+			EndTextCommandSetBlipName(blip)
+		end
 		
-		local blip = AddBlipForCoord(zoneValues.MunicipalPoundPoint.Pos.x, zoneValues.MunicipalPoundPoint.Pos.y, zoneValues.MunicipalPoundPoint.Pos.z)
-		SetBlipSprite (blip, Config.BlipPound.Sprite)
-		SetBlipDisplay(blip, 4)
-		SetBlipScale  (blip, 1.2)
-		SetBlipColour (blip, Config.BlipPound.Color)
-		SetBlipAsShortRange(blip, true)
-		BeginTextCommandSetBlipName("STRING")
-		AddTextComponentString("Fourriere")
-		EndTextCommandSetBlipName(blip)
+		if zoneValues.MunicipalPoundPoint then
+			local blip = AddBlipForCoord(zoneValues.MunicipalPoundPoint.Pos.x, zoneValues.MunicipalPoundPoint.Pos.y, zoneValues.MunicipalPoundPoint.Pos.z)
+			SetBlipSprite (blip, Config.BlipPound.Sprite)
+			SetBlipDisplay(blip, 4)
+			SetBlipScale  (blip, 1.2)
+			SetBlipColour (blip, Config.BlipPound.Color)
+			SetBlipAsShortRange(blip, true)
+			BeginTextCommandSetBlipName("STRING")
+			AddTextComponentString(_U("municipal_pound"))
+			EndTextCommandSetBlipName(blip)
+		end
 	end
 end
 -- Fin Gestion des Blips
+
+local function has_value (tab, val)
+	for index, value in ipairs(tab) do
+			if value == val then
+					return true
+			end
+	end
+
+	return false
+end
+
+local privateBlips = {}
+function PrivateGarageBlips()
+	for _,blip in pairs(privateBlips) do
+		RemoveBlip(blip)
+	end
+	privateBlips = {}
+	for zoneKey,zoneValues in pairs(Config.Garages)do
+		if zoneValues.Private and has_value(userProperties, zoneValues.Private) then
+			local blip = AddBlipForCoord(zoneValues.Pos.x, zoneValues.Pos.y, zoneValues.Pos.z)
+			SetBlipSprite (blip, Config.BlipPrivate.Sprite)
+			SetBlipDisplay(blip, 4)
+			SetBlipScale  (blip, 0.8)
+			SetBlipColour (blip, Config.BlipPrivate.Color)
+			SetBlipAsShortRange(blip, true)
+			BeginTextCommandSetBlipName("STRING")
+			AddTextComponentString(_U('private_garage'))
+			EndTextCommandSetBlipName(blip)
+		end
+	end
+end
 
 --Fonction Menu
 
@@ -82,21 +123,21 @@ function OpenMenuGarage(PointType)
 
 	
 	if PointType == 'spawn' then
-		table.insert(elements,{label = "Liste des véhicules", value = 'list_vehicles'})
+		table.insert(elements,{label = _U('list_vehicles'), value = 'list_vehicles'})
 	end
 
 	if PointType == 'delete' then
-		table.insert(elements,{label = "Rentrer vehicules", value = 'stock_vehicle'})
+		table.insert(elements,{label = _U('stock_vehicle'), value = 'stock_vehicle'})
 	end
 
 	if PointType == 'pound' then
-		table.insert(elements,{label = "Retour vehicule ("..Config.Price.."$)", value = 'return_vehicle'})
+		table.insert(elements,{label = _U('return_vehicle').." ("..Config.Price.."$)", value = 'return_vehicle'})
 	end
 
 	ESX.UI.Menu.Open(
 		'default', GetCurrentResourceName(), 'garage_menu',
 		{
-			title    = 'Garage',
+			title    = _U('garage'),
 			align    = 'top-left',
 			elements = elements,
 		},
@@ -138,10 +179,10 @@ function ListVehiclesMenu()
     		local labelvehicle
 
     		if(v.state)then
-    		labelvehicle = vehicleName..': Garage'
+    		labelvehicle = vehicleName..': '.._U('garage')
     		
     		else
-    		labelvehicle = vehicleName..': Fourriere'
+    		labelvehicle = vehicleName..': '.._U('municipal_pound')
     		end	
 			table.insert(elements, {label =labelvehicle , value = v})
 			
@@ -159,7 +200,7 @@ function ListVehiclesMenu()
 				menu.close()
 				SpawnVehicle(data.current.value.vehicle)
 			else
-				TriggerEvent('esx:showNotification', 'Votre véhicule est a la fourriere')
+				TriggerEvent('esx:showNotification', _U('vehicle_is_impounded'))
 			end
 		end,
 		function(data, menu)
@@ -175,13 +216,13 @@ function reparation(prix,vehicle,vehicleProps)
 	ESX.UI.Menu.CloseAll()
 
 	local elements = {
-		{label = "Rentrer le vehicule ("..prix.."$)", value = 'yes'},
-		{label = "passer voir le mécano", value = 'no'},
+		{label = _U('return_vehicle').." ("..prix.."$)", value = 'yes'},
+		{label = _U('see_mechanic'), value = 'no'},
 	}
 	ESX.UI.Menu.Open(
 		'default', GetCurrentResourceName(), 'delete_menu',
 		{
-			title    = 'vehicule endomagé',
+			title    = _U('damaged_vehicle'),
 			align    = 'top-left',
 			elements = elements,
 		},
@@ -193,7 +234,7 @@ function reparation(prix,vehicle,vehicleProps)
 				ranger(vehicle,vehicleProps)
 			end
 			if(data.current.value == 'no') then
-				ESX.ShowNotification('Passez voir le mécano')
+				ESX.ShowNotification(_U('visit_mechanic'))
 			end
 
 		end,
@@ -207,7 +248,7 @@ end
 function ranger(vehicle,vehicleProps)
 	ESX.Game.DeleteVehicle(vehicle)
 	TriggerServerEvent('eden_garage:modifystate', vehicleProps, true)
-	TriggerEvent('esx:showNotification', 'Votre véhicule est dans le garage')
+	TriggerEvent('esx:showNotification', _U('vehicle_in_garage'))
 end
 
 -- Fonction qui permet de rentrer un vehicule
@@ -234,11 +275,11 @@ function StockVehicleMenu()
 			    	ranger(vehicle,vehicleProps)
 			    end	
 			else
-				TriggerEvent('esx:showNotification', 'Vous ne pouvez pas stocker ce véhicule')
+				TriggerEvent('esx:showNotification', _U('cannot_store_vehicle'))
 			end
 		end,vehicleProps)
 	else
-		TriggerEvent('esx:showNotification', 'Il n\' y a pas de vehicule à rentrer')
+		TriggerEvent('esx:showNotification', _('no_vehicle_to_enter'))
 	end
 
 end
@@ -292,19 +333,19 @@ AddEventHandler('eden_garage:hasEnteredMarker', function(zone)
 
 	if zone == 'spawn' then
 		CurrentAction     = 'spawn'
-		CurrentActionMsg  = "Appuyer sur ~INPUT_PICKUP~ pour sortir un vehicule"
+		CurrentActionMsg  = _U('press_to_enter')
 		CurrentActionData = {}
 	end
 
 	if zone == 'delete' then
 		CurrentAction     = 'delete'
-		CurrentActionMsg  = "Appuyer sur ~INPUT_PICKUP~ pour rentrer un vehicule"
+		CurrentActionMsg  = _U('press_to_delete')
 		CurrentActionData = {}
 	end
 	
 	if zone == 'pound' then
 		CurrentAction     = 'pound_action_menu'
-		CurrentActionMsg  = "Appuyer sur ~INPUT_PICKUP~ pour acceder a la fourriere"
+		CurrentActionMsg  = _U('press_to_impound')
 		CurrentActionData = {}
 	end
 end)
@@ -327,7 +368,7 @@ function ReturnVehicleMenu()
     		local vehicleName = GetDisplayNameFromVehicleModel(hashVehicule)
     		local labelvehicle
 
-    		labelvehicle = vehicleName..': Sortie'
+    		labelvehicle = vehicleName..': '.._U('return')
     	
 			table.insert(elements, {label =labelvehicle , value = v})
 			
@@ -336,7 +377,7 @@ function ReturnVehicleMenu()
 		ESX.UI.Menu.Open(
 		'default', GetCurrentResourceName(), 'return_vehicle',
 		{
-			title    = 'Garage',
+			title    = _U('garage'),
 			align    = 'top-left',
 			elements = elements,
 		},
@@ -355,7 +396,7 @@ function ReturnVehicleMenu()
 						end)
 					end
 				else
-					ESX.ShowNotification('Vous n\'avez pas assez d\'argent')						
+					ESX.ShowNotification(_U('not_enough_money'))						
 				end
 			end)
 		end,
@@ -374,14 +415,16 @@ Citizen.CreateThread(function()
 		local coords = GetEntityCoords(GetPlayerPed(-1))			
 
 		for k,v in pairs(Config.Garages) do
-			if(GetDistanceBetweenCoords(coords, v.Pos.x, v.Pos.y, v.Pos.z, true) < Config.DrawDistance) then		
-				DrawMarker(v.SpawnPoint.Marker, v.SpawnPoint.Pos.x, v.SpawnPoint.Pos.y, v.SpawnPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.SpawnPoint.Size.x, v.SpawnPoint.Size.y, v.SpawnPoint.Size.z, v.SpawnPoint.Color.r, v.SpawnPoint.Color.g, v.SpawnPoint.Color.b, 100, false, true, 2, false, false, false, false)	
-				DrawMarker(v.DeletePoint.Marker, v.DeletePoint.Pos.x, v.DeletePoint.Pos.y, v.DeletePoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.DeletePoint.Size.x, v.DeletePoint.Size.y, v.DeletePoint.Size.z, v.DeletePoint.Color.r, v.DeletePoint.Color.g, v.DeletePoint.Color.b, 100, false, true, 2, false, false, false, false)	
+			if not v.Private or has_value(userProperties, v.Private) then
+				if(GetDistanceBetweenCoords(coords, v.Pos.x, v.Pos.y, v.Pos.z, true) < Config.DrawDistance) then		
+					DrawMarker(v.SpawnPoint.Marker, v.SpawnPoint.Pos.x, v.SpawnPoint.Pos.y, v.SpawnPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.SpawnPoint.Size.x, v.SpawnPoint.Size.y, v.SpawnPoint.Size.z, v.SpawnPoint.Color.r, v.SpawnPoint.Color.g, v.SpawnPoint.Color.b, 100, false, true, 2, false, false, false, false)	
+					DrawMarker(v.DeletePoint.Marker, v.DeletePoint.Pos.x, v.DeletePoint.Pos.y, v.DeletePoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.DeletePoint.Size.x, v.DeletePoint.Size.y, v.DeletePoint.Size.z, v.DeletePoint.Color.r, v.DeletePoint.Color.g, v.DeletePoint.Color.b, 100, false, true, 2, false, false, false, false)	
+				end
+				if(v.MunicipalPoundPoint and GetDistanceBetweenCoords(coords, v.MunicipalPoundPoint.Pos.x, v.MunicipalPoundPoint.Pos.y, v.MunicipalPoundPoint.Pos.z, true) < Config.DrawDistance) then
+					DrawMarker(v.MunicipalPoundPoint.Marker, v.MunicipalPoundPoint.Pos.x, v.MunicipalPoundPoint.Pos.y, v.MunicipalPoundPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.MunicipalPoundPoint.Size.x, v.MunicipalPoundPoint.Size.y, v.MunicipalPoundPoint.Size.z, v.MunicipalPoundPoint.Color.r, v.MunicipalPoundPoint.Color.g, v.MunicipalPoundPoint.Color.b, 100, false, true, 2, false, false, false, false)	
+					DrawMarker(v.SpawnMunicipalPoundPoint.Marker, v.SpawnMunicipalPoundPoint.Pos.x, v.SpawnMunicipalPoundPoint.Pos.y, v.SpawnMunicipalPoundPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.SpawnMunicipalPoundPoint.Size.x, v.SpawnMunicipalPoundPoint.Size.y, v.SpawnMunicipalPoundPoint.Size.z, v.SpawnMunicipalPoundPoint.Color.r, v.SpawnMunicipalPoundPoint.Color.g, v.SpawnMunicipalPoundPoint.Color.b, 100, false, true, 2, false, false, false, false)
+				end		
 			end
-			if(GetDistanceBetweenCoords(coords, v.MunicipalPoundPoint.Pos.x, v.MunicipalPoundPoint.Pos.y, v.MunicipalPoundPoint.Pos.z, true) < Config.DrawDistance) then
-				DrawMarker(v.MunicipalPoundPoint.Marker, v.MunicipalPoundPoint.Pos.x, v.MunicipalPoundPoint.Pos.y, v.MunicipalPoundPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.MunicipalPoundPoint.Size.x, v.MunicipalPoundPoint.Size.y, v.MunicipalPoundPoint.Size.z, v.MunicipalPoundPoint.Color.r, v.MunicipalPoundPoint.Color.g, v.MunicipalPoundPoint.Color.b, 100, false, true, 2, false, false, false, false)	
-				DrawMarker(v.SpawnMunicipalPoundPoint.Marker, v.SpawnMunicipalPoundPoint.Pos.x, v.SpawnMunicipalPoundPoint.Pos.y, v.SpawnMunicipalPoundPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, v.SpawnMunicipalPoundPoint.Size.x, v.SpawnMunicipalPoundPoint.Size.y, v.SpawnMunicipalPoundPoint.Size.z, v.SpawnMunicipalPoundPoint.Color.r, v.SpawnMunicipalPoundPoint.Color.g, v.SpawnMunicipalPoundPoint.Color.b, 100, false, true, 2, false, false, false, false)
-			end		
 		end	
 	end
 end)
@@ -398,21 +441,23 @@ Citizen.CreateThread(function()
 		local isInMarker  = false
 
 		for _,v in pairs(Config.Garages) do
-			if(GetDistanceBetweenCoords(coords, v.SpawnPoint.Pos.x, v.SpawnPoint.Pos.y, v.SpawnPoint.Pos.z, true) < v.Size.x) then
-				isInMarker  = true
-				this_Garage = v
-				currentZone = 'spawn'
-			end
+			if not v.Private or has_value(userProperties, v.Private) then
+				if(GetDistanceBetweenCoords(coords, v.SpawnPoint.Pos.x, v.SpawnPoint.Pos.y, v.SpawnPoint.Pos.z, true) < v.Size.x) then
+					isInMarker  = true
+					this_Garage = v
+					currentZone = 'spawn'
+				end
 
-			if(GetDistanceBetweenCoords(coords, v.DeletePoint.Pos.x, v.DeletePoint.Pos.y, v.DeletePoint.Pos.z, true) < v.Size.x) then
-				isInMarker  = true
-				this_Garage = v
-				currentZone = 'delete'
-			end
-			if(GetDistanceBetweenCoords(coords, v.MunicipalPoundPoint.Pos.x, v.MunicipalPoundPoint.Pos.y, v.MunicipalPoundPoint.Pos.z, true) < v.MunicipalPoundPoint.Size.x) then
-				isInMarker  = true
-				this_Garage = v
-				currentZone = 'pound'
+				if(GetDistanceBetweenCoords(coords, v.DeletePoint.Pos.x, v.DeletePoint.Pos.y, v.DeletePoint.Pos.z, true) < v.Size.x) then
+					isInMarker  = true
+					this_Garage = v
+					currentZone = 'delete'
+				end
+				if(v.MunicipalPoundPoint and GetDistanceBetweenCoords(coords, v.MunicipalPoundPoint.Pos.x, v.MunicipalPoundPoint.Pos.y, v.MunicipalPoundPoint.Pos.z, true) < v.MunicipalPoundPoint.Size.x) then
+					isInMarker  = true
+					this_Garage = v
+					currentZone = 'pound'
+				end
 			end
 		end
 

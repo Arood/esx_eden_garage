@@ -68,7 +68,19 @@ AddEventHandler('eden_garage:modifystate', function(vehicleProps, state)
 	end
 end)	
 
+--Get user properties
+ESX.RegisterServerCallback('eden_garage:getOwnedProperties',function(source, cb)	
+	local _source = source
+	local xPlayer = ESX.GetPlayerFromId(_source)
+	local properties = {}
 
+	MySQL.Async.fetchAll("SET @ownedProperties = (SELECT name FROM owned_properties WHERE owner=@identifier);SET @gateways = (SELECT gateway FROM properties WHERE name = @ownedProperties AND gateway IS NOT NULL);SELECT name FROM properties WHERE name = @ownedProperties AND gateway = @gateways OR name = @gateways AND gateway IS NULL;",{['@identifier'] = xPlayer.getIdentifier()}, function(data) 
+		for _,v in pairs(data) do
+			table.insert(properties, v.name)
+		end
+		cb(properties)
+	end)
+end)
 
 --Fin change le state du véhicule
 
@@ -112,7 +124,7 @@ AddEventHandler('eden_garage:pay', function()
 
 	xPlayer.removeMoney(Config.Price)
 
-	TriggerClientEvent('esx:showNotification', source, 'Vous avez payé ' .. Config.Price)
+	TriggerClientEvent('esx:showNotification', source, _U('you_paid')..' ' .. Config.Price)
 
 end)
 --Fin fonction qui retire argent
@@ -192,7 +204,7 @@ AddEventHandler('eden_garage:payhealth', function(price)
 
 	xPlayer.removeMoney(price)
 
-	TriggerClientEvent('esx:showNotification', source, 'Vous avez payé ' .. price)
+	TriggerClientEvent('esx:showNotification', source, _U('you_paid')..' ' .. price)
 
 end)
 --fin de payement pour la santé vehicule
