@@ -20,19 +20,19 @@ Config = {
 
 Config.Garages = {
 	Garage_Centre = {	
-		Pos = {x=129.03471374512, y= -1069.9652099609, z= 28.0},
+		Pos = {x= 222.607, y= -801.464, z=29.727},
 		Size  = {x = 3.0, y = 3.0, z = 1.0},
 		Color = {r = 204, g = 204, b = 0},
 		Marker = 1,
 		SpawnPoint = {
-			Pos = {x=129.03471374512, y= -1069.9652099609, z= 28.0},
+			Pos = {x= 222.607, y= -801.464, z= 29.5722},
 			Color = {r=0,g=255,b=0},
 			Size  = {x = 3.0, y = 3.0, z = 1.0},
-			Heading=157.84,
+			Heading=247.35,
 			Marker = 1		
 		},
 		DeletePoint = {
-			Pos = {x=135.44493103027, y=-1050.9243164063, z=28.0},
+			Pos = {x= 228.797, y= -750.415, z=29.646},
 			Color = {r=255,g=0,b=0},
 			Size  = {x = 3.0, y = 3.0, z = 1.0},
 			Marker = 1,
