@@ -3,7 +3,7 @@ Config = {
 	Locale = 'en',
 	DrawDistance = 100,
 	Price = 5000,
-	DamageMultiplier = 4,
+	DamageMultiplier = 5,
 	PropertyGarages = true,
 	BlipInfos = {
 		Sprite = 290,
@@ -21,19 +21,19 @@ Config = {
 
 Config.Garages = {
 	Garage_Centre = {	
-		Pos = {x= 222.607, y= -801.464, z=29.727},
+		Pos = {x=229.700, y= -800.1149, z=29.727},
 		Size  = {x = 3.0, y = 3.0, z = 1.0},
 		Color = {r = 204, g = 204, b = 0},
 		Marker = 1,
 		SpawnPoint = {
-			Pos = {x= 222.607, y= -801.464, z= 29.5722},
+			Pos = {x=229.700, y= -800.1149, z= 29.5722},
 			Color = {r=0,g=255,b=0},
 			Size  = {x = 3.0, y = 3.0, z = 1.0},
-			Heading=247.35,
+			Heading=157.84,
 			Marker = 1		
 		},
 		DeletePoint = {
-			Pos = {x= 228.797, y= -750.415, z=29.646},
+			Pos = {x= 223.797, y= -760.415, z=29.646},
 			Color = {r=255,g=0,b=0},
 			Size  = {x = 3.0, y = 3.0, z = 1.0},
 			Marker = 1,
