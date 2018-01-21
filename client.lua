@@ -103,7 +103,7 @@ function PrivateGarageBlips()
 			local blip = AddBlipForCoord(zoneValues.Pos.x, zoneValues.Pos.y, zoneValues.Pos.z)
 			SetBlipSprite (blip, Config.BlipPrivate.Sprite)
 			SetBlipDisplay(blip, 4)
-			SetBlipScale  (blip, 0.8)
+			SetBlipScale  (blip, 1)
 			SetBlipColour (blip, Config.BlipPrivate.Color)
 			SetBlipAsShortRange(blip, true)
 			BeginTextCommandSetBlipName("STRING")
@@ -268,8 +268,8 @@ function StockVehicleMenu()
 			if (valid) then
 				TriggerServerEvent('eden_garage:debug', "plaque vehicule rentree au garage: "  .. vehicleProps.plate)
 				TriggerServerEvent('eden_garage:logging',"santee vehicule rentree au garage: " .. engineHealth)
-				if engineHealth < 1000 then
-			        local fraisRep= math.floor((1000 - engineHealth)*100)			      
+				if engineHealth < 980 then
+			        local fraisRep= math.ceil((1000 - engineHealth)/1000*Config.Price*Config.DamageMultiplier)
 			        reparation(fraisRep,vehicle,vehicleProps)
 			    else
 			    	ranger(vehicle,vehicleProps)

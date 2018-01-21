@@ -2,7 +2,8 @@
 Config = {
 	Locale = 'en',
 	DrawDistance = 100,
-	Price = 3000,
+	Price = 5000,
+	DamageMultiplier = 4,
 	PropertyGarages = true,
 	BlipInfos = {
 		Sprite = 290,
